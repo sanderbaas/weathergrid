@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">WeatherGrid</string>
+    <string name="my_widgets">Mijn widgets</string>
+    <string name="no_widgets_msg">Geen actieve widgets gevonden. Gebruik de knop hieronder of voeg handmatig een widget toe aan je homescherm.</string>
+    <string name="add_widget_btn">Nieuwe widget toevoegen</string>
+
+    <string name="widget_settings_title">Widget Instellingen</string>
+    <string name="search_city_label">ZOEK EEN PLAATS</string>
+    <string name="search_city_hint">Typ om te zoeken…</string>
+    <string name="use_location_label">OF GEBRUIK HUIDIGE LOCATIE</string>
+    <string name="use_location_btn">Huidige locatie gebruiken</string>
+    <string name="check_data_label">CONTROLEER GEGEVENS</string>
+    <string name="place_name_label">Naam in widget</string>
+    <string name="place_name_hint">Bijv. Thuis</string>
+    <string name="latitude_label">Latitude</string>
+    <string name="longitude_label">Longitude</string>
+    <string name="cancel_btn">Annuleren</string>
+    <string name="save_btn">Opslaan</string>
+
+    <string name="default_location_name">Locatie</string>
+    <string name="current_location_name">Huidige Locatie</string>
+    <string name="my_location_name">Mijn Locatie</string>
+    <string name="new_location_default">Nieuwe Locatie</string>
+    <string name="weather_forecast_default">Weersverwachting</string>
+
+    <string name="location_retrieved_toast">Locatie %s opgehaald!</string>
+    <string name="location_error_toast">Kon locatie niet bepalen. Controleer of GPS aan staat.</string>
+    <string name="pin_widget_toast">Plaats de widget op je startscherm…</string>
+    <string name="pin_unsupported_error">Systeem ondersteunt automatisch toevoegen niet.</string>
+    <string name="manual_add_error">Voeg de widget handmatig toe via je startscherm.</string>
+
+    <string name="direction_n">N</string>
+    <string name="direction_ne">NO</string>
+    <string name="direction_e">O</string>
+    <string name="direction_se">ZO</string>
+    <string name="direction_s">Z</string>
+    <string name="direction_sw">ZW</string>
+    <string name="direction_w">W</string>
+    <string name="direction_nw">NW</string>
+</resources>

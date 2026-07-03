@@ -1,0 +1,71 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- SCALED DESIGN: "Vibrant Friendly Sun-Cloud" -->
+    <!-- Scaled down to 82% to fit within the launcher's safe zone -->
+
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.60"
+        android:scaleY="0.60"
+        android:translateY="5">
+
+        <!-- 1. THE SUN (Bright & Warm) -->
+        <path
+            android:pathData="M55,25a18,18 0,1 1,36 0,18,18 0,1 1,-36 0"
+            android:strokeWidth="0">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="55"
+                    android:startY="25"
+                    android:endX="91"
+                    android:endY="25"
+                    android:type="linear">
+                    <item android:color="#FFCC00" android:offset="0.0" />
+                    <item android:color="#FF8800" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- 2. THE CLOUD BODY (Clear & Rounded) -->
+        <path
+            android:pathData="M25,75c-8.28,0 -15,-6.72 -15,-15c0,-7.18 5.01,-13.19 11.75,-14.66c1.35,-8.66 8.79,-15.34 17.75,-15.34c6.39,0 11.96,3.41 15.1,8.53c2.47,-1.59 5.41,-2.53 8.57,-2.53c8.28,0 15,6.72 15,15c0,0.59 -0.04,1.17 -0.11,1.74c6.54,1.86 11.33,7.86 11.33,14.96c0,8.56 -6.94,15.5 -15.5,15.5H25z"
+            android:fillColor="#E6FFFFFF" />
+
+        <!-- 3. RAINBOW ACCENT (Modern & Colorful edge) -->
+        <path
+            android:pathData="M25,75c-8.28,0 -15,-6.72 -15,-15c0,-7.18 5.01,-13.19 11.75,-14.66c1.35,-8.66 8.79,-15.34 17.75,-15.34c6.39,0 11.96,3.41 15.1,8.53c2.47,-1.59 5.41,-2.53 8.57,-2.53c8.28,0 15,6.72 15,15c0,0.59 -0.04,1.17 -0.11,1.74c6.54,1.86 11.33,7.86 11.33,14.96c0,8.56 -6.94,15.5 -15.5,15.5H25z"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000">
+            <aapt:attr name="android:strokeColor">
+                <gradient
+                    android:startX="10"
+                    android:startY="55"
+                    android:endX="98"
+                    android:endY="55"
+                    android:type="linear">
+                    <item android:color="#FF0055" android:offset="0.0" />
+                    <item android:color="#FF8800" android:offset="0.2" />
+                    <item android:color="#FFFF00" android:offset="0.4" />
+                    <item android:color="#00FF00" android:offset="0.6" />
+                    <item android:color="#00FFFF" android:offset="0.8" />
+                    <item android:color="#7700FF" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- 4. GRID DETAIL (Subtle reference to "WeatherGrid") -->
+        <path
+            android:pathData="M40,55h28M40,65h28M45,48v24M59,48v24"
+            android:strokeWidth="0.8"
+            android:strokeColor="#11000000" />
+    </group>
+
+</vector>
