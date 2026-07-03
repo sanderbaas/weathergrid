@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">WeatherGrid</string>
+    <string name="my_widgets">My widgets</string>
+    <string name="no_widgets_msg">No active widgets found. Use the button below or add a widget manually to your home screen.</string>
+    <string name="add_widget_btn">Add new widget</string>
+
+    <string name="widget_settings_title">Widget Settings</string>
+    <string name="search_city_label">SEARCH FOR A PLACE</string>
+    <string name="search_city_hint">Type to search...</string>
+    <string name="use_location_label">OR USE CURRENT LOCATION</string>
+    <string name="use_location_btn">Use current location</string>
+    <string name="check_data_label">CHECK DATA</string>
+    <string name="place_name_label">Name in widget</string>
+    <string name="place_name_hint">e.g. Home</string>
+    <string name="latitude_label">Latitude</string>
+    <string name="longitude_label">Longitude</string>
+    <string name="cancel_btn">Cancel</string>
+    <string name="save_btn">Save</string>
+
+    <string name="default_location_name">Location</string>
+    <string name="current_location_name">Current Location</string>
+    <string name="my_location_name">My Location</string>
+    <string name="new_location_default">New Location</string>
+    <string name="weather_forecast_default">Weather Forecast</string>
+
+    <string name="location_retrieved_toast">Location %s retrieved!</string>
+    <string name="location_error_toast">Could not determine location. Check if GPS is enabled.</string>
+    <string name="pin_widget_toast">Place the widget on your home screen...</string>
+    <string name="pin_unsupported_error">System does not support automatic adding.</string>
+    <string name="manual_add_error">Add the widget manually via your home screen.</string>
+
+    <string name="widget_metadata_format">Lat: %s, Lon: %s | Update: %s</string>
+    <string name="last_update_fallback">--:--:--</string>
+    <string name="coord_format">Lat: %.3f, Lon: %.3f</string>
+
+    <string name="direction_n">N</string>
+    <string name="direction_ne">NE</string>
+    <string name="direction_e">E</string>
+    <string name="direction_se">SE</string>
+    <string name="direction_s">S</string>
+    <string name="direction_sw">SW</string>
+    <string name="direction_w">W</string>
+    <string name="direction_nw">NW</string>
+</resources>
