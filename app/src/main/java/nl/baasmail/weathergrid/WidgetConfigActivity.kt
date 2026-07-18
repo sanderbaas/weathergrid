@@ -28,6 +28,14 @@ class WidgetConfigActivity : AppCompatActivity() {
     private lateinit var editPlaceName: EditText
     private lateinit var editLat: EditText
     private lateinit var editLon: EditText
+    private lateinit var switchHidePast: Switch
+    private lateinit var spinnerTemp: Spinner
+    private lateinit var spinnerWind: Spinner
+    private lateinit var spinnerPrecip: Spinner
+
+    private val tempValues = arrayOf("celsius", "fahrenheit")
+    private val windValues = arrayOf("beaufort", "ms", "kmh", "mph", "kn")
+    private val precipValues = arrayOf("mm", "inch")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +59,13 @@ class WidgetConfigActivity : AppCompatActivity() {
         editPlaceName = findViewById(R.id.edit_place_name)
         editLat = findViewById(R.id.edit_lat)
         editLon = findViewById(R.id.edit_lon)
+        switchHidePast = findViewById(R.id.switch_hide_past)
+        spinnerTemp = findViewById(R.id.spinner_temp_unit)
+        spinnerWind = findViewById(R.id.spinner_wind_unit)
+        spinnerPrecip = findViewById(R.id.spinner_precip_unit)
+        
+        setupSpinners()
+
         val btnGetLocation = findViewById<Button>(R.id.btn_get_location)
         val btnCancel = findViewById<Button>(R.id.btn_cancel)
         val btnSave = findViewById<Button>(R.id.btn_save)
@@ -59,6 +74,16 @@ class WidgetConfigActivity : AppCompatActivity() {
         editPlaceName.setText(prefs.getString("place_$appWidgetId", getString(R.string.new_location_default)))
         editLat.setText(String.format(Locale.US, "%.3f", prefs.getFloat("lat_$appWidgetId", 51.80f)))
         editLon.setText(String.format(Locale.US, "%.3f", prefs.getFloat("lon_$appWidgetId", 4.65f)))
+        switchHidePast.isChecked = prefs.getBoolean("hide_past_$appWidgetId", false)
+
+        val savedTemp = prefs.getString("temp_unit_$appWidgetId", "celsius")
+        spinnerTemp.setSelection(tempValues.indexOf(savedTemp).coerceAtLeast(0))
+        
+        val savedWind = prefs.getString("wind_unit_$appWidgetId", "beaufort")
+        spinnerWind.setSelection(windValues.indexOf(savedWind).coerceAtLeast(0))
+        
+        val savedPrecip = prefs.getString("precip_unit_$appWidgetId", "mm")
+        spinnerPrecip.setSelection(precipValues.indexOf(savedPrecip).coerceAtLeast(0))
 
         setupGoogleAutocomplete()
 
@@ -73,6 +98,29 @@ class WidgetConfigActivity : AppCompatActivity() {
         btnSave.setOnClickListener {
             saveAndFinish()
         }
+    }
+
+    private fun setupSpinners() {
+        val tempUnits = arrayOf(getString(R.string.unit_temp_c), getString(R.string.unit_temp_f))
+        val tempAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tempUnits)
+        tempAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerTemp.adapter = tempAdapter
+
+        val windUnits = arrayOf(
+            getString(R.string.unit_wind_bft),
+            getString(R.string.unit_wind_ms),
+            getString(R.string.unit_wind_kmh),
+            getString(R.string.unit_wind_mph),
+            getString(R.string.unit_wind_kn)
+        )
+        val windAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, windUnits)
+        windAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerWind.adapter = windAdapter
+
+        val precipUnits = arrayOf(getString(R.string.unit_precip_mm), getString(R.string.unit_precip_in))
+        val precipAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, precipUnits)
+        precipAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        spinnerPrecip.adapter = precipAdapter
     }
 
     private fun setupGoogleAutocomplete() {
@@ -197,12 +245,20 @@ class WidgetConfigActivity : AppCompatActivity() {
         val place = editPlaceName.text.toString()
         val lat = editLat.text.toString().toFloatOrNull() ?: 51.80f
         val lon = editLon.text.toString().toFloatOrNull() ?: 4.65f
+        val hidePast = switchHidePast.isChecked
+        val tempUnit = tempValues[spinnerTemp.selectedItemPosition]
+        val windUnit = windValues[spinnerWind.selectedItemPosition]
+        val precipUnit = precipValues[spinnerPrecip.selectedItemPosition]
 
         val prefs = getSharedPreferences("weather_widget_prefs", Context.MODE_PRIVATE)
         prefs.edit().apply {
             putString("place_$appWidgetId", place)
             putFloat("lat_$appWidgetId", lat)
             putFloat("lon_$appWidgetId", lon)
+            putBoolean("hide_past_$appWidgetId", hidePast)
+            putString("temp_unit_$appWidgetId", tempUnit)
+            putString("wind_unit_$appWidgetId", windUnit)
+            putString("precip_unit_$appWidgetId", precipUnit)
             apply()
         }
 

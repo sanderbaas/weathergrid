@@ -6,7 +6,17 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class WeatherResponse(
     val hourly: HourlyData,
-    val current: CurrentData? = null
+    val current: CurrentData? = null,
+    val daily: DailyData? = null
+)
+
+@Serializable
+data class DailyData(
+    val time: List<String>,
+    val sunrise: List<String>,
+    val sunset: List<String>,
+    @SerialName("precipitation_probability_max")
+    val precipitationProbabilityMax: List<Int>
 )
 
 @Serializable

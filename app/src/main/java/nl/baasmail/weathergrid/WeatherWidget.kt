@@ -97,6 +97,10 @@ class WeatherWidget : AppWidgetProvider() {
                 remove("lat_$appWidgetId")
                 remove("lon_$appWidgetId")
                 remove("display_mode_$appWidgetId")
+                remove("hide_past_$appWidgetId")
+                remove("temp_unit_$appWidgetId")
+                remove("wind_unit_$appWidgetId")
+                remove("precip_unit_$appWidgetId")
             }
             apply()
         }

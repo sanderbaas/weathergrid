@@ -41,4 +41,20 @@
     <string name="direction_sw">SW</string>
     <string name="direction_w">W</string>
     <string name="direction_nw">NW</string>
+
+    <string name="units_label">UNITS</string>
+    <string name="temp_label">Temperature</string>
+    <string name="wind_label">Wind Speed</string>
+    <string name="precip_label">Precipitation</string>
+    <string name="hide_past_label">Hide past time slots</string>
+    <string name="precip_prob_format">%d%% chance</string>
+    <string name="unit_temp_c">Celsius (°C)</string>
+    <string name="unit_temp_f">Fahrenheit (°F)</string>
+    <string name="unit_wind_bft">Beaufort (Bft)</string>
+    <string name="unit_wind_ms">m/s</string>
+    <string name="unit_wind_kmh">km/h</string>
+    <string name="unit_wind_mph">mph</string>
+    <string name="unit_wind_kn">Knots (kn)</string>
+    <string name="unit_precip_mm">mm</string>
+    <string name="unit_precip_in">inch</string>
 </resources>

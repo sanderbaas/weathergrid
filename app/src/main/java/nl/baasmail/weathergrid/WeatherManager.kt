@@ -25,10 +25,14 @@ object WeatherManager {
         val lat = prefs.getFloat("lat_$appWidgetId", 51.80f).toDouble()
         val lon = prefs.getFloat("lon_$appWidgetId", 4.65f).toDouble()
         val place = prefs.getString("place_$appWidgetId", context.getString(R.string.weather_forecast_default)) ?: context.getString(R.string.weather_forecast_default)
+        
+        val tempUnit = prefs.getString("temp_unit_$appWidgetId", "celsius") ?: "celsius"
+        val windUnit = prefs.getString("wind_unit_$appWidgetId", "beaufort") ?: "beaufort"
+        val precipUnit = prefs.getString("precip_unit_$appWidgetId", "mm") ?: "mm"
 
-        val weatherData = fetchWeatherData(lat, lon)
+        val weatherData = fetchWeatherData(lat, lon, tempUnit, windUnit, precipUnit)
         if (weatherData != null) {
-            val lastUpdateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
+            val lastUpdateStr = LocalDateTime.now().toString()
             val weatherJson = json.encodeToString(weatherData)
             
             prefs.edit().apply {
@@ -55,9 +59,10 @@ object WeatherManager {
         updateWidgetUi(context, appWidgetId, weatherData, lat, lon, place, lastUpdateStr)
     }
 
-    private fun fetchWeatherData(lat: Double, lon: Double): WeatherData? {
+    private fun fetchWeatherData(lat: Double, lon: Double, tempUnit: String = "celsius", windUnit: String = "beaufort", precipUnit: String = "mm"): WeatherData? {
         return try {
-            val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,weather_code,is_day,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m,precipitation,rain,snowfall,precipitation_probability,relative_humidity_2m,uv_index&wind_speed_unit=ms&timezone=auto"
+            val apiWindUnit = if (windUnit == "beaufort") "ms" else windUnit
+            val url = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,apparent_temperature,relative_humidity_2m,uv_index,weather_code,is_day,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m,precipitation,rain,snowfall,precipitation_probability,relative_humidity_2m,uv_index&daily=sunrise,sunset,precipitation_probability_max&wind_speed_unit=$apiWindUnit&temperature_unit=$tempUnit&precipitation_unit=$precipUnit&timezone=auto"
             val responseText = URL(url).readText()
             val response = json.decodeFromString<WeatherResponse>(responseText)
 
@@ -118,7 +123,11 @@ object WeatherManager {
                 }
             } else listOf()
 
-            WeatherData(days, times, currentData)
+            val sunriseRaw = response.daily?.sunrise?.firstOrNull()
+            val sunsetRaw = response.daily?.sunset?.firstOrNull()
+            val precipProbMax = response.daily?.precipitationProbabilityMax?.firstOrNull()
+
+            WeatherData(days, times, currentData, sunriseRaw, sunsetRaw, precipProbMax)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -160,17 +169,38 @@ object WeatherManager {
 
         rv.setTextViewText(R.id.widget_title, place)
 
+        val prefs = context.getSharedPreferences("weather_widget_prefs", Context.MODE_PRIVATE)
+        val mode = prefs.getInt("display_mode_$appWidgetId", 0)
+        
+        val windUnit = prefs.getString("wind_unit_$appWidgetId", "beaufort") ?: "beaufort"
+        val precipUnit = prefs.getString("precip_unit_$appWidgetId", "mm") ?: "mm"
+
         if (data?.current != null) {
             val c = data.current
-            val tempColor = getTempColor(c.temperature)
-            val uvColor = getUvColor(c.uvIndex)
-            val rhColor = getHumidityColor(c.humidity)
             
-            val tempInt = c.temperature.toInt()
-            val apparentInt = c.apparentTemperature.toInt()
-            val tempDisplay = if (tempInt != apparentInt) "$tempInt° ($apparentInt°)" else "$tempInt°"
+            val dataHtml = when (mode) {
+                1 -> { // Sunrise/Sunset mode
+                    val sunrise = formatTime(context, data.sunrise)
+                    val sunset = formatTime(context, data.sunset)
+                    "<font color='#FFFF88'>↑$sunrise</font>&nbsp;&nbsp;&nbsp;<font color='#FFCC88'>↓$sunset</font>"
+                }
+                2 -> { // Wind & Humidity mode
+                    val windStr = formatWind(context, c.windSpeed, c.windDirection, windUnit, showUnit = true)
+                    val rhColor = getHumidityColor(c.humidity)
+                    "<font color='#FFFFFF'>$windStr</font>&nbsp;&nbsp;&nbsp;<font color='$rhColor'>RH ${c.humidity}%</font>"
+                }
+                else -> { // Default: Temp, UV, Precip Prob
+                    val tempColor = getTempColor(c.temperature)
+                    val uvColor = getUvColor(c.uvIndex)
+                    val precipProb = data.precipProbMax ?: 0
+                    val tempInt = c.temperature.toInt()
+                    val apparentInt = c.apparentTemperature.toInt()
+                    val tempDisplay = if (tempInt != apparentInt) "$tempInt° ($apparentInt°)" else "$tempInt°"
+                    val probText = context.getString(R.string.precip_prob_format, precipProb)
+                    "<font color='$tempColor'>$tempDisplay</font>&nbsp;&nbsp;&nbsp;<font color='$uvColor'>UV ${c.uvIndex.toInt()}</font>&nbsp;&nbsp;&nbsp;<font color='#88CCFF'>$probText</font>"
+                }
+            }
             
-            val dataHtml = "<font color='$tempColor'>$tempDisplay</font>&nbsp;&nbsp;&nbsp;<font color='$uvColor'>UV ${c.uvIndex.toInt()}</font>&nbsp;&nbsp;&nbsp;<font color='$rhColor'>RH ${c.humidity}%</font>"
             rv.setTextViewText(R.id.widget_current_data, Html.fromHtml(dataHtml, Html.FROM_HTML_MODE_LEGACY))
             rv.setViewVisibility(R.id.widget_current_data, View.VISIBLE)
         } else {
@@ -180,7 +210,8 @@ object WeatherManager {
         if (data != null) {
             val latStr = String.format(Locale.US, "%.3f", lat)
             val lonStr = String.format(Locale.US, "%.3f", lon)
-            rv.setTextViewText(R.id.widget_metadata, context.getString(R.string.widget_metadata_format, latStr, lonStr, updateTimeStr))
+            val formattedUpdate = formatTime(context, updateTimeStr, includeSeconds = true)
+            rv.setTextViewText(R.id.widget_metadata, context.getString(R.string.widget_metadata_format, latStr, lonStr, formattedUpdate))
             
             rv.removeAllViews(R.id.rows_container)
             
@@ -190,6 +221,11 @@ object WeatherManager {
             val precipIds = arrayOf(R.id.precip1, R.id.precip2, R.id.precip3, R.id.precip4, R.id.precip5, R.id.precip6, R.id.precip7, R.id.precip8)
 
             val headerRv = RemoteViews(context.packageName, R.layout.weather_header_row)
+            val hidePast = prefs.getBoolean("hide_past_$appWidgetId", false)
+
+            val currentHour = LocalDateTime.now().hour
+            val currentSlotIndex = currentHour / 3
+
             for (i in 0 until 8) {
                 if (i < data.times.size) {
                     headerRv.setTextViewText(tempIds[i], data.times[i])
@@ -207,12 +243,6 @@ object WeatherManager {
             val maxDayRows = if (availableForDays > 0) (availableForDays / 80) else 1
             val daysToShow = data.days.take(maxOf(1, maxDayRows))
 
-            val prefs = context.getSharedPreferences("weather_widget_prefs", Context.MODE_PRIVATE)
-            val mode = prefs.getInt("display_mode_$appWidgetId", 0)
-
-            val currentHour = LocalDateTime.now().hour
-            val currentSlotIndex = currentHour / 3
-
             for ((index, day) in daysToShow.withIndex()) {
                 val dayRv = RemoteViews(context.packageName, R.layout.weather_row)
                 dayRv.setTextViewText(R.id.day_label, day.label)
@@ -223,7 +253,8 @@ object WeatherManager {
                 }
 
                 for (i in 0 until 8) {
-                    if (i < day.temps.size) {
+                    val shouldHide = index == 0 && hidePast && i < currentSlotIndex
+                    if (i < day.temps.size && !shouldHide) {
                         val isCurrentSlot = (index == 0 && i == currentSlotIndex && data.current != null)
                         
                         val temp = if (isCurrentSlot) data.current!!.temperature else day.temps[i]
@@ -236,20 +267,29 @@ object WeatherManager {
 
                         dayRv.setTextViewText(tempIds[i], "${temp.toInt()}°")
                         dayRv.setTextColor(tempIds[i], if (temp > 0) 0xFFFF5555.toInt() else 0xFF5555FF.toInt())
+                        dayRv.setViewVisibility(tempIds[i], View.VISIBLE)
                         
                         dayRv.setImageViewResource(iconIds[i], getWeatherIcon(weatherCode, isDay))
-                        dayRv.setTextViewText(windIds[i], "${degreeToDirection(context, windDir)} ${msToBeaufort(windSpeed)}")
+                        dayRv.setViewVisibility(iconIds[i], View.VISIBLE)
+
+                        dayRv.setTextViewText(windIds[i], formatWind(context, windSpeed, windDir, windUnit, showUnit = false))
                         dayRv.setTextColor(windIds[i], Color.WHITE)
+                        dayRv.setViewVisibility(windIds[i], View.VISIBLE)
 
                         val dynamicText = when (mode) {
                             1 -> "UV ${uvIndex.toInt()}"
                             2 -> "RH $humidity%"
                             else -> {
-                                val rainMm = day.rain[i]
-                                val snowCm = day.snow[i]
-                                if (snowCm > 0 || rainMm > 0) {
-                                    if (snowCm > 0) String.format(Locale.getDefault(), "%.1f", snowCm) + "cm"
-                                    else String.format(Locale.getDefault(), "%.1f", rainMm) + "mm"
+                                val rainVal = day.rain[i]
+                                val snowVal = day.snow[i]
+                                if (snowVal > 0 || rainVal > 0) {
+                                    if (snowVal > 0) {
+                                        val snowUnit = if (precipUnit == "inch") "in" else "cm"
+                                        String.format(Locale.getDefault(), "%.1f", snowVal) + snowUnit
+                                    } else {
+                                        val unitLabel = if (precipUnit == "inch") "in" else "mm"
+                                        String.format(Locale.getDefault(), "%.1f", rainVal) + unitLabel
+                                    }
                                 } else ""
                             }
                         }
@@ -266,6 +306,11 @@ object WeatherManager {
                         } else {
                             dayRv.setViewVisibility(precipIds[i], View.INVISIBLE)
                         }
+                    } else {
+                        dayRv.setViewVisibility(tempIds[i], if (shouldHide) View.INVISIBLE else View.GONE)
+                        dayRv.setViewVisibility(iconIds[i], if (shouldHide) View.INVISIBLE else View.GONE)
+                        dayRv.setViewVisibility(windIds[i], if (shouldHide) View.INVISIBLE else View.GONE)
+                        dayRv.setViewVisibility(precipIds[i], if (shouldHide) View.INVISIBLE else View.GONE)
                     }
                 }
                 rv.addView(R.id.rows_container, dayRv)
@@ -292,6 +337,55 @@ object WeatherManager {
             hum <= 30 || hum >= 70 -> "#FFFF00"
             else -> "#FFFFFF"
         }
+    }
+
+    private fun formatTime(context: Context, isoString: String?, includeSeconds: Boolean = false): String {
+        if (isoString == null) return "--:--"
+        return try {
+            val ldt = LocalDateTime.parse(isoString)
+            val is24Hour = android.text.format.DateFormat.is24HourFormat(context)
+            val pattern = if (is24Hour) {
+                if (includeSeconds) "HH:mm:ss" else "HH:mm"
+            } else {
+                if (includeSeconds) "h:mm:ss a" else "h:mm a"
+            }
+            ldt.format(DateTimeFormatter.ofPattern(pattern, Locale.getDefault()))
+        } catch (e: Exception) {
+            // Fallback for old "HH:mm:ss" format in cache
+            isoString
+        }
+    }
+
+    private fun formatWind(context: Context, speed: Double, direction: Int, unit: String, showUnit: Boolean = true): String {
+        val dirStr = degreeToDirection(context, direction)
+        val valueStr = when (unit) {
+            "beaufort" -> msToBeaufort(speed).toString()
+            "ms" -> String.format(Locale.US, "%.1f", speed)
+            "kmh", "mph", "kn" -> speed.toInt().toString()
+            else -> msToBeaufort(speed).toString()
+        }
+        
+        if (!showUnit) return "$dirStr $valueStr"
+        
+        val unitLabel = when (unit) {
+            "beaufort" -> " Bft"
+            "ms" -> " m/s"
+            "kmh" -> " km/h"
+            "mph" -> " mph"
+            "kn" -> " kn"
+            else -> " Bft"
+        }
+        return "$dirStr $valueStr$unitLabel"
+    }
+
+    private fun unitToBeaufort(value: Double, unit: String): Int {
+        val ms = when (unit) {
+            "kmh" -> value / 3.6
+            "mph" -> value * 0.44704
+            "kn" -> value * 0.514444
+            else -> value
+        }
+        return msToBeaufort(ms)
     }
 
     private fun msToBeaufort(ms: Double): Int {
@@ -328,7 +422,7 @@ object WeatherManager {
     }
 
     @kotlinx.serialization.Serializable
-    data class WeatherData(val days: List<DayData>, val times: List<String>, val current: CurrentData? = null)
+    data class WeatherData(val days: List<DayData>, val times: List<String>, val current: CurrentData? = null, val sunrise: String? = null, val sunset: String? = null, val precipProbMax: Int? = null)
 
     @kotlinx.serialization.Serializable
     data class CurrentData(val temperature: Double, val apparentTemperature: Double, val humidity: Int, val uvIndex: Double, val weatherCode: Int, val isDay: Int, val windSpeed: Double, val windDirection: Int)
