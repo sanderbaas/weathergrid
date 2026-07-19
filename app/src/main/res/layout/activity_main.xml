@@ -47,6 +47,18 @@
             android:textColor="@android:color/white"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/text_attribution"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/open_meteo_attribution"
+            android:textColor="#888888"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:paddingBottom="8dp"
+            android:autoLink="web"
+            android:linksClickable="true" />
     </LinearLayout>
 
 </LinearLayout>

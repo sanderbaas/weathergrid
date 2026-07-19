@@ -57,4 +57,5 @@
     <string name="unit_wind_kn">Knots (kn)</string>
     <string name="unit_precip_mm">mm</string>
     <string name="unit_precip_in">inch</string>
+    <string name="open_meteo_attribution">Weather data by Open-Meteo.com</string>
 </resources>

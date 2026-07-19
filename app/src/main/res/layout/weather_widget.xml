@@ -47,14 +47,29 @@
             android:padding="4dp"
             android:contentDescription="@string/widget_settings_title" />
 
-        <ImageView
-            android:id="@+id/btn_refresh"
+        <FrameLayout
             android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_refresh"
-            android:alpha="0.6"
-            android:padding="4dp"
-            android:contentDescription="@string/app_name" />
+            android:layout_height="28dp">
+
+            <ImageView
+                android:id="@+id/btn_refresh"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_refresh"
+                android:alpha="0.6"
+                android:padding="4dp"
+                android:contentDescription="@string/app_name" />
+
+            <ProgressBar
+                android:id="@+id/refresh_progress"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="6dp"
+                android:visibility="gone"
+                android:indeterminate="true"
+                android:indeterminateTint="@android:color/white"
+                style="?android:attr/progressBarStyleSmall" />
+        </FrameLayout>
     </LinearLayout>
 
     <!-- Sticky Footer Section -->

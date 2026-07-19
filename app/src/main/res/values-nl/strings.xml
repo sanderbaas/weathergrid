@@ -53,4 +53,5 @@
     <string name="unit_wind_kn">Knopen (kn)</string>
     <string name="unit_precip_mm">mm</string>
     <string name="unit_precip_in">inch</string>
+    <string name="open_meteo_attribution">Weergegevens door Open-Meteo.com</string>
 </resources>

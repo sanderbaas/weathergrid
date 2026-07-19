@@ -278,5 +278,17 @@
                 android:textColor="@android:color/white" />
         </LinearLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/open_meteo_attribution"
+            android:textColor="#888888"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:layout_marginTop="32dp"
+            android:paddingBottom="8dp"
+            android:autoLink="web"
+            android:linksClickable="true" />
+
     </LinearLayout>
 </ScrollView>

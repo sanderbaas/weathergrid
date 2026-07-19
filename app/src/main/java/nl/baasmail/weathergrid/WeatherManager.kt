@@ -30,6 +30,9 @@ object WeatherManager {
         val windUnit = prefs.getString("wind_unit_$appWidgetId", "beaufort") ?: "beaufort"
         val precipUnit = prefs.getString("precip_unit_$appWidgetId", "mm") ?: "mm"
 
+        // Show loading state
+        updateWidgetUi(context, appWidgetId, null, lat, lon, place, "", isLoading = true)
+
         val weatherData = fetchWeatherData(lat, lon, tempUnit, windUnit, precipUnit)
         if (weatherData != null) {
             val lastUpdateStr = LocalDateTime.now().toString()
@@ -40,7 +43,10 @@ object WeatherManager {
                 putString("cache_time_$appWidgetId", lastUpdateStr)
                 apply()
             }
-            updateWidgetUi(context, appWidgetId, weatherData, lat, lon, place, lastUpdateStr)
+            updateWidgetUi(context, appWidgetId, weatherData, lat, lon, place, lastUpdateStr, isLoading = false)
+        } else {
+            // If fetch fails, redraw with cached data to clear loading state
+            redrawWidget(context, appWidgetId)
         }
     }
 
@@ -56,7 +62,7 @@ object WeatherManager {
             try { json.decodeFromString<WeatherData>(weatherJson) } catch (e: Exception) { null }
         } else null
 
-        updateWidgetUi(context, appWidgetId, weatherData, lat, lon, place, lastUpdateStr)
+        updateWidgetUi(context, appWidgetId, weatherData, lat, lon, place, lastUpdateStr, isLoading = false)
     }
 
     private fun fetchWeatherData(lat: Double, lon: Double, tempUnit: String = "celsius", windUnit: String = "beaufort", precipUnit: String = "mm"): WeatherData? {
@@ -103,17 +109,30 @@ object WeatherManager {
                     "$name\n$date"
                 } else ""
 
+                // Aggregate hourly data into 3-hour blocks
+                val blockTemps = chunkedTemps[i].chunked(3).map { it.average() }
+                val blockSpeeds = chunkedSpeeds[i].chunked(3).map { it.average() }
+                val blockHumidities = chunkedHumidities[i].chunked(3).map { it.average().toInt() }
+                val blockUv = chunkedUv[i].chunked(3).map { it.average() }
+                val blockRain = chunkedRain[i].chunked(3).map { it.sum() }
+                val blockSnow = chunkedSnow[i].chunked(3).map { it.sum() }
+                
+                // For categorical data, we take the middle hour (index 1) as representative
+                val blockCodes = chunkedCodes[i].chunked(3).map { b -> b.getOrElse(1) { b[0] } }
+                val blockIsDay = chunkedIsDay[i].chunked(3).map { b -> b.getOrElse(1) { b[0] } }
+                val blockDirs = chunkedDirs[i].chunked(3).map { b -> b.getOrElse(1) { b[0] } }
+
                 DayData(
                     label = dayLabel,
-                    temps = chunkedTemps[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8),
-                    codes = chunkedCodes[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8),
-                    isDay = chunkedIsDay[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8),
-                    speeds = chunkedSpeeds[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8),
-                    dirs = chunkedDirs[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8),
-                    rain = chunkedRain[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8),
-                    snow = chunkedSnow[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8),
-                    humidities = chunkedHumidities[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8),
-                    uvIndices = chunkedUv[i].filterIndexed { idx, _ -> idx % 3 == 0 }.take(8)
+                    temps = blockTemps,
+                    codes = blockCodes,
+                    isDay = blockIsDay,
+                    speeds = blockSpeeds,
+                    dirs = blockDirs,
+                    rain = blockRain,
+                    snow = blockSnow,
+                    humidities = blockHumidities,
+                    uvIndices = blockUv
                 )
             }
 
@@ -134,7 +153,7 @@ object WeatherManager {
         }
     }
 
-    private fun updateWidgetUi(context: Context, appWidgetId: Int, data: WeatherData?, lat: Double, lon: Double, place: String, updateTimeStr: String) {
+    private fun updateWidgetUi(context: Context, appWidgetId: Int, data: WeatherData?, lat: Double, lon: Double, place: String, updateTimeStr: String, isLoading: Boolean = false) {
         val appWidgetManager = AppWidgetManager.getInstance(context)
         val rv = RemoteViews(context.packageName, R.layout.weather_widget)
         
@@ -168,6 +187,15 @@ object WeatherManager {
         rv.setOnClickPendingIntent(R.id.btn_settings, settingsPI)
 
         rv.setTextViewText(R.id.widget_title, place)
+
+        // Animation logic: show/hide progress bar
+        if (isLoading) {
+            rv.setViewVisibility(R.id.btn_refresh, View.GONE)
+            rv.setViewVisibility(R.id.refresh_progress, View.VISIBLE)
+        } else {
+            rv.setViewVisibility(R.id.btn_refresh, View.VISIBLE)
+            rv.setViewVisibility(R.id.refresh_progress, View.GONE)
+        }
 
         val prefs = context.getSharedPreferences("weather_widget_prefs", Context.MODE_PRIVATE)
         val mode = prefs.getInt("display_mode_$appWidgetId", 0)
@@ -255,15 +283,13 @@ object WeatherManager {
                 for (i in 0 until 8) {
                     val shouldHide = index == 0 && hidePast && i < currentSlotIndex
                     if (i < day.temps.size && !shouldHide) {
-                        val isCurrentSlot = (index == 0 && i == currentSlotIndex && data.current != null)
-                        
-                        val temp = if (isCurrentSlot) data.current!!.temperature else day.temps[i]
-                        val weatherCode = if (isCurrentSlot) data.current!!.weatherCode else day.codes[i]
-                        val isDay = if (isCurrentSlot) data.current!!.isDay == 1 else day.isDay[i] == 1
-                        val windSpeed = if (isCurrentSlot) data.current!!.windSpeed else day.speeds[i]
-                        val windDir = if (isCurrentSlot) data.current!!.windDirection else day.dirs[i]
-                        val humidity = if (isCurrentSlot) data.current!!.humidity else day.humidities[i]
-                        val uvIndex = if (isCurrentSlot) data.current!!.uvIndex else day.uvIndices[i]
+                        val temp = day.temps[i]
+                        val weatherCode = day.codes[i]
+                        val isDay = day.isDay[i] == 1
+                        val windSpeed = day.speeds[i]
+                        val windDir = day.dirs[i]
+                        val humidity = day.humidities[i]
+                        val uvIndex = day.uvIndices[i]
 
                         dayRv.setTextViewText(tempIds[i], "${temp.toInt()}°")
                         dayRv.setTextColor(tempIds[i], if (temp > 0) 0xFFFF5555.toInt() else 0xFF5555FF.toInt())
