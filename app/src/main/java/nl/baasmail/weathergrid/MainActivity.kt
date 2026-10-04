@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
+import android.location.LocationManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.location.LocationServices
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
@@ -46,26 +46,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkLocationAndAddWidget() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 100)
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 100)
             return
         }
 
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            if (location != null) {
-                val geocoder = Geocoder(this, Locale.getDefault())
-                val addresses = try {
-                    geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                } catch (e: Exception) { null }
-                
-                val cityName = addresses?.firstOrNull()?.locality ?: getString(R.string.current_location_name)
-                requestPinWidget(location.latitude, location.longitude, cityName)
-            } else {
-                // Fallback naar standaard als GPS uit staat of geen fix heeft
-                requestPinWidget(51.80, 4.65, "Rotterdam")
-            }
-        }.addOnFailureListener {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val location = try {
+            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                ?: locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
+        } catch (e: Exception) {
+            null
+        }
+
+        if (location != null) {
+            val geocoder = Geocoder(this, Locale.getDefault())
+            val addresses = try {
+                @Suppress("DEPRECATION")
+                geocoder.getFromLocation(location.latitude, location.longitude, 1)
+            } catch (e: Exception) { null }
+
+            val cityName = addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.featureName ?: getString(R.string.current_location_name)
+            requestPinWidget(location.latitude, location.longitude, cityName)
+        } else {
+            // Fallback naar standaard als GPS uit staat of geen fix heeft
             requestPinWidget(51.80, 4.65, "Rotterdam")
         }
     }

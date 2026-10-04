@@ -14,9 +14,10 @@ android {
         applicationId = "nl.baasmail.weathergrid"
         minSdk = 32
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
 
+        manifestPlaceholders["appName"] = "WeatherGrid"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -35,11 +36,16 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            manifestPlaceholders["appName"] = "WeatherGrid (Debug)"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
+            manifestPlaceholders["appName"] = "WeatherGrid"
         }
     }
     compileOptions {
@@ -53,8 +59,12 @@ android {
     applicationVariants.all {
         outputs.all {
             val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            output.outputFileName = "WeatherGrid-v${versionName}.apk"
+            output.outputFileName = "WeatherGrid-v${versionName}-${buildType.name}.apk"
         }
+    }
+
+    dependenciesInfo {
+        includeInApk = false
     }
 }
 
@@ -67,7 +77,6 @@ dependencies {
     implementation(libs.retrofit.serialization)
     implementation(libs.okhttp)
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation("com.google.android.gms:play-services-location:21.1.0")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     testImplementation(libs.junit)

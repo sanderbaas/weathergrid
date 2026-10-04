@@ -10,18 +10,19 @@
         android:layout_width="45dp"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:includeFontPadding="false"
         android:textColor="@android:color/white"
         android:textSize="12sp"
         android:textStyle="bold" />
 
     <!-- 8 Time columns -->
-    <TextView android:id="@+id/temp1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textSize="11sp" />
-    <TextView android:id="@+id/temp2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textSize="11sp" />
-    <TextView android:id="@+id/temp3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textSize="11sp" />
-    <TextView android:id="@+id/temp4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textSize="11sp" />
-    <TextView android:id="@+id/temp5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textSize="11sp" />
-    <TextView android:id="@+id/temp6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textSize="11sp" />
-    <TextView android:id="@+id/temp7" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textSize="11sp" />
-    <TextView android:id="@+id/temp8" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:textSize="11sp" />
+    <TextView android:id="@+id/temp1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:includeFontPadding="false" android:textSize="11sp" />
+    <TextView android:id="@+id/temp2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:includeFontPadding="false" android:textSize="11sp" />
+    <TextView android:id="@+id/temp3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:includeFontPadding="false" android:textSize="11sp" />
+    <TextView android:id="@+id/temp4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:includeFontPadding="false" android:textSize="11sp" />
+    <TextView android:id="@+id/temp5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:includeFontPadding="false" android:textSize="11sp" />
+    <TextView android:id="@+id/temp6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:includeFontPadding="false" android:textSize="11sp" />
+    <TextView android:id="@+id/temp7" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:includeFontPadding="false" android:textSize="11sp" />
+    <TextView android:id="@+id/temp8" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:includeFontPadding="false" android:textSize="11sp" />
 
 </LinearLayout>

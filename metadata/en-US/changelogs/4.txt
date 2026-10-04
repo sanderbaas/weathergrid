@@ -1,0 +1,2 @@
+• Removed proprietary Google Play Services dependencies in favor of native Android LocationManager.
+• Initial Fastlane metadata release for version 1.3.

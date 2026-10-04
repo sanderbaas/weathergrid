@@ -15,6 +15,7 @@ import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 object WeatherManager {
 
@@ -112,7 +113,7 @@ object WeatherManager {
                 // Aggregate hourly data into 3-hour blocks
                 val blockTemps = chunkedTemps[i].chunked(3).map { it.average() }
                 val blockSpeeds = chunkedSpeeds[i].chunked(3).map { it.average() }
-                val blockHumidities = chunkedHumidities[i].chunked(3).map { it.average().toInt() }
+                val blockHumidities = chunkedHumidities[i].chunked(3).map { it.average().roundToInt() }
                 val blockUv = chunkedUv[i].chunked(3).map { it.average() }
                 val blockRain = chunkedRain[i].chunked(3).map { it.sum() }
                 val blockSnow = chunkedSnow[i].chunked(3).map { it.sum() }
@@ -221,11 +222,11 @@ object WeatherManager {
                     val tempColor = getTempColor(c.temperature)
                     val uvColor = getUvColor(c.uvIndex)
                     val precipProb = data.precipProbMax ?: 0
-                    val tempInt = c.temperature.toInt()
-                    val apparentInt = c.apparentTemperature.toInt()
+                    val tempInt = c.temperature.roundToInt()
+                    val apparentInt = c.apparentTemperature.roundToInt()
                     val tempDisplay = if (tempInt != apparentInt) "$tempInt° ($apparentInt°)" else "$tempInt°"
                     val probText = context.getString(R.string.precip_prob_format, precipProb)
-                    "<font color='$tempColor'>$tempDisplay</font>&nbsp;&nbsp;&nbsp;<font color='$uvColor'>UV ${c.uvIndex.toInt()}</font>&nbsp;&nbsp;&nbsp;<font color='#88CCFF'>$probText</font>"
+                    "<font color='$tempColor'>$tempDisplay</font>&nbsp;&nbsp;&nbsp;<font color='$uvColor'>UV ${c.uvIndex.roundToInt()}</font>&nbsp;&nbsp;&nbsp;<font color='#88CCFF'>$probText</font>"
                 }
             }
             
@@ -267,9 +268,16 @@ object WeatherManager {
 
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-            val availableForDays = if (minHeight > 0) minHeight - 45 - 20 else 200
-            val maxDayRows = if (availableForDays > 0) (availableForDays / 80) else 1
-            val daysToShow = data.days.take(maxOf(1, maxDayRows))
+            val availableForDays = if (minHeight > 0) minHeight - 65 else 150
+            val maxDayRows = if (availableForDays > 0) (availableForDays / 55) else 1
+            
+            // If only 1 row fits and it's late in the evening (21:00 onwards), show Tomorrow instead of Today's expired day
+            val displayDays = if (currentHour >= 21 && maxDayRows == 1 && data.days.size > 1) {
+                data.days.drop(1)
+            } else {
+                data.days
+            }
+            val daysToShow = displayDays.take(maxOf(1, maxDayRows))
 
             for ((index, day) in daysToShow.withIndex()) {
                 val dayRv = RemoteViews(context.packageName, R.layout.weather_row)
@@ -280,8 +288,9 @@ object WeatherManager {
                     dayRv.setInt(R.id.row_container, "setBackgroundResource", R.drawable.bg_weather_row_light)
                 }
 
+                val isToday = data.days.firstOrNull()?.label == day.label
                 for (i in 0 until 8) {
-                    val shouldHide = index == 0 && hidePast && i < currentSlotIndex
+                    val shouldHide = isToday && hidePast && i < currentSlotIndex
                     if (i < day.temps.size && !shouldHide) {
                         val temp = day.temps[i]
                         val weatherCode = day.codes[i]
@@ -291,7 +300,7 @@ object WeatherManager {
                         val humidity = day.humidities[i]
                         val uvIndex = day.uvIndices[i]
 
-                        dayRv.setTextViewText(tempIds[i], "${temp.toInt()}°")
+                        dayRv.setTextViewText(tempIds[i], "${temp.roundToInt()}°")
                         dayRv.setTextColor(tempIds[i], if (temp > 0) 0xFFFF5555.toInt() else 0xFF5555FF.toInt())
                         dayRv.setViewVisibility(tempIds[i], View.VISIBLE)
                         
@@ -303,7 +312,7 @@ object WeatherManager {
                         dayRv.setViewVisibility(windIds[i], View.VISIBLE)
 
                         val dynamicText = when (mode) {
-                            1 -> "UV ${uvIndex.toInt()}"
+                            1 -> "UV ${uvIndex.roundToInt()}"
                             2 -> "RH $humidity%"
                             else -> {
                                 val rainVal = day.rain[i]
@@ -387,7 +396,7 @@ object WeatherManager {
         val valueStr = when (unit) {
             "beaufort" -> msToBeaufort(speed).toString()
             "ms" -> String.format(Locale.US, "%.1f", speed)
-            "kmh", "mph", "kn" -> speed.toInt().toString()
+            "kmh", "mph", "kn" -> speed.roundToInt().toString()
             else -> msToBeaufort(speed).toString()
         }
         
