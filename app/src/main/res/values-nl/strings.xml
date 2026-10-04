@@ -23,7 +23,7 @@
     <string name="new_location_default">Nieuwe Locatie</string>
     <string name="weather_forecast_default">Weersverwachting</string>
 
-    <string name="location_retrieved_toast">Locatie %s opgehaald!</string>
+    <string name="location_retrieved_toast">Locatie %1$s opgehaald!</string>
     <string name="location_error_toast">Kon locatie niet bepalen. Controleer of GPS aan staat.</string>
     <string name="pin_widget_toast">Plaats de widget op je startscherm…</string>
     <string name="pin_unsupported_error">Systeem ondersteunt automatisch toevoegen niet.</string>

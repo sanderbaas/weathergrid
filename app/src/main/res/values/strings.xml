@@ -23,15 +23,15 @@
     <string name="new_location_default">New Location</string>
     <string name="weather_forecast_default">Weather Forecast</string>
 
-    <string name="location_retrieved_toast">Location %s retrieved!</string>
+    <string name="location_retrieved_toast">Location %1$s retrieved!</string>
     <string name="location_error_toast">Could not determine location. Check if GPS is enabled.</string>
     <string name="pin_widget_toast">Place the widget on your home screen...</string>
     <string name="pin_unsupported_error">System does not support automatic adding.</string>
     <string name="manual_add_error">Add the widget manually via your home screen.</string>
 
-    <string name="widget_metadata_format">Lat: %s, Lon: %s | Update: %s</string>
+    <string name="widget_metadata_format">Lat: %1$s, Lon: %2$s | Update: %3$s</string>
     <string name="last_update_fallback">--:--:--</string>
-    <string name="coord_format">Lat: %.3f, Lon: %.3f</string>
+    <string name="coord_format">Lat: %1$.3f, Lon: %2$.3f</string>
 
     <string name="direction_n">N</string>
     <string name="direction_ne">NE</string>
